@@ -49,6 +49,7 @@ import static org.mockito.Mockito.when;
 @RunWith(AndroidJUnit4.class) @LargeTest public class MainActivityTest {
 
   private static final int SINGLE_NUMBER_OF_SUPER_HEROES = 1;
+  private static final int ANY_NUMBER_OF_SUPER_HEROES = 10;
 
   @Rule public DaggerMockRule<MainComponent> daggerRule =
       new DaggerMockRule<>(MainComponent.class, new MainModule()).set(
@@ -80,7 +81,17 @@ import static org.mockito.Mockito.when;
 
     startActivity();
 
-    onView(withId(R.id.recycler_view)).check(matches(recyclerViewHasItemCount(1)));
+    onView(withId(R.id.recycler_view))
+            .check(matches(recyclerViewHasItemCount(SINGLE_NUMBER_OF_SUPER_HEROES)));
+  }
+
+  @Test public void checkAnyNumberOfSuperHeroes() {
+    givenAnyNumberOfSuperHeros();
+
+    startActivity();
+
+    onView(withId(R.id.recycler_view))
+            .check(matches(recyclerViewHasItemCount(ANY_NUMBER_OF_SUPER_HEROES)));
   }
 
   private void givenThereAreNoSuperHeroes() {
@@ -89,6 +100,10 @@ import static org.mockito.Mockito.when;
 
   private void givenOneSuperHero() {
     generateSuperHeros(SINGLE_NUMBER_OF_SUPER_HEROES);
+  }
+
+  private void givenAnyNumberOfSuperHeros() {
+    generateSuperHeros(ANY_NUMBER_OF_SUPER_HEROES);
   }
 
   private List<SuperHero> generateSuperHeros(int numberOfSuperHeroes) {
