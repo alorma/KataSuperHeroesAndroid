@@ -126,8 +126,78 @@ import static org.mockito.Mockito.when;
     });
   }
 
+  @Test public void checkOneHeroIsOnListWithoutAvengerBadge() {
+    List<SuperHero> superHeroes = givenOneSuperHero(false);
+
+    startActivity();
+
+    RecyclerViewInteraction.<SuperHero>onRecyclerView(withId(R.id.recycler_view))
+    .withItems(superHeroes)
+    .check(new RecyclerViewInteraction.ItemViewAssertion<SuperHero>() {
+      @Override
+      public void check(SuperHero item, View view, NoMatchingViewException e) {
+        matches(hasDescendant(
+                allOf(withId(R.id.iv_avengers_badge)
+                        , withEffectiveVisibility(ViewMatchers.Visibility.GONE)))
+        ).check(view, e);
+      }
+    });
+  }
+
+  @Test public void checkSuperHeroesWithName() {
+    List<SuperHero> superHeroes = givenAnyNumberOfSuperHeros(false);
+
+    startActivity();
+
+    RecyclerViewInteraction.<SuperHero>onRecyclerView(withId(R.id.recycler_view))
+            .withItems(superHeroes)
+            .check(new RecyclerViewInteraction.ItemViewAssertion<SuperHero>() {
+
+              @Override
+              public void check(SuperHero item, View view, NoMatchingViewException e) {
+                matches(hasDescendant(withText(item.getName()))).check(view, e);
+              }
+            });
+  }
+
+  @Test public void checkSuperHeroesWithAvengerBadge() {
+    List<SuperHero> superHeroes = givenAnyNumberOfSuperHeros(true);
+
+    startActivity();
+
+    RecyclerViewInteraction.<SuperHero>onRecyclerView(withId(R.id.recycler_view))
+    .withItems(superHeroes)
+    .check(new RecyclerViewInteraction.ItemViewAssertion<SuperHero>() {
+      @Override
+      public void check(SuperHero item, View view, NoMatchingViewException e) {
+        matches(hasDescendant(
+                allOf(withId(R.id.iv_avengers_badge)
+                        , withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+        ).check(view, e);
+      }
+    });
+  }
+
+  @Test public void checkSuperHeroesWithoutAvengerBadge() {
+    List<SuperHero> superHeroes = givenAnyNumberOfSuperHeros(false);
+
+    startActivity();
+
+    RecyclerViewInteraction.<SuperHero>onRecyclerView(withId(R.id.recycler_view))
+    .withItems(superHeroes)
+    .check(new RecyclerViewInteraction.ItemViewAssertion<SuperHero>() {
+      @Override
+      public void check(SuperHero item, View view, NoMatchingViewException e) {
+        matches(hasDescendant(
+                allOf(withId(R.id.iv_avengers_badge)
+                        , withEffectiveVisibility(ViewMatchers.Visibility.GONE)))
+        ).check(view, e);
+      }
+    });
+  }
+
   @Test public void checkAnyNumberOfSuperHeroes() {
-    givenAnyNumberOfSuperHeros();
+    givenAnyNumberOfSuperHeros(false);
 
     startActivity();
 
@@ -143,25 +213,30 @@ import static org.mockito.Mockito.when;
     return generateSuperHeros(SINGLE_NUMBER_OF_SUPER_HEROES, isAvenger);
   }
 
-  private void givenAnyNumberOfSuperHeros() {
-    generateSuperHeros(ANY_NUMBER_OF_SUPER_HEROES, false);
+  private List<SuperHero> givenAnyNumberOfSuperHeros(boolean isAvenger) {
+    return generateSuperHeros(ANY_NUMBER_OF_SUPER_HEROES, isAvenger);
   }
 
   private List<SuperHero> generateSuperHeros(int numberOfSuperHeroes, boolean isAvenger) {
     List<SuperHero> superHeroes = new ArrayList<>();
 
     for (int i = 0; i < numberOfSuperHeroes; i++) {
-      String superHeroName = "SuperHero - " + i;
-      String superHeroPhoto = "https://i.annihil.us/u/prod/marvel/i/mg/c/60/55b6a28ef24fa.jpg";
-      String superHeroDescription = "Description Super Hero - " + i;
-      SuperHero superHero =
-              new SuperHero(superHeroName, superHeroPhoto, isAvenger, superHeroDescription);
+      SuperHero superHero = generateSuperHero(isAvenger, i);
       superHeroes.add(superHero);
-      when(repository.getByName(superHeroName)).thenReturn(superHero);
     }
     when(repository.getAll()).thenReturn(superHeroes);
 
     return superHeroes;
+  }
+
+  private SuperHero generateSuperHero(boolean isAvenger, int i) {
+    String superHeroName = "SuperHero - " + i;
+    String superHeroPhoto = "https://i.annihil.us/u/prod/marvel/i/mg/c/60/55b6a28ef24fa.jpg";
+    String superHeroDescription = "Description Super Hero - " + i;
+    SuperHero superHero =
+            new SuperHero(superHeroName, superHeroPhoto, isAvenger, superHeroDescription);
+    when(repository.getByName(superHeroName)).thenReturn(superHero);
+    return superHero;
   }
 
   private MainActivity startActivity() {
