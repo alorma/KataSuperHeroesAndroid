@@ -18,6 +18,7 @@ package com.karumi.katasuperheroes;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.NoMatchingViewException;
+import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.support.test.espresso.intent.rule.IntentsTestRule;
 import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.runner.AndroidJUnit4;
@@ -30,6 +31,7 @@ import com.karumi.katasuperheroes.model.SuperHero;
 import com.karumi.katasuperheroes.model.SuperHeroesRepository;
 import com.karumi.katasuperheroes.recyclerview.RecyclerViewInteraction;
 import com.karumi.katasuperheroes.ui.view.MainActivity;
+import com.karumi.katasuperheroes.ui.view.SuperHeroDetailActivity;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +45,11 @@ import java.util.List;
 import it.cosenonjaviste.daggermock.DaggerMockRule;
 
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.intent.Intents.intended;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static android.support.test.espresso.intent.matcher.IntentMatchers.hasExtra;
 import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
@@ -218,6 +224,19 @@ public class MainActivityTest {
 
     onView(withId(R.id.recycler_view))
         .check(matches(recyclerViewHasItemCount(ANY_NUMBER_OF_SUPER_HEROES)));
+  }
+
+  @Test public void checkBundleParamsOnItemTapped() {
+    List<SuperHero> superHeroes = generateSuperHeros(ANY_NUMBER_OF_SUPER_HEROES, false);
+    int index = 0;
+
+    startActivity();
+
+    onView(withId(R.id.recycler_view)).perform(RecyclerViewActions.actionOnItemAtPosition(index, click()));
+
+    SuperHero superHeroSelected = superHeroes.get(index);
+    intended(hasComponent(SuperHeroDetailActivity.class.getCanonicalName()));
+    intended(hasExtra("super_hero_name_key", superHeroSelected.getName()));
   }
 
   private void givenThereAreNoSuperHeroes() {
