@@ -19,6 +19,7 @@ package com.karumi.katasuperheroes;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.NoMatchingViewException;
 import android.support.test.espresso.intent.rule.IntentsTestRule;
+import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.view.View;
@@ -45,9 +46,11 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static com.karumi.katasuperheroes.matchers.RecyclerViewItemsCountMatcher.recyclerViewHasItemCount;
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class) @LargeTest public class MainActivityTest {
@@ -81,7 +84,7 @@ import static org.mockito.Mockito.when;
   }
 
   @Test public void checkOneHeroIsOnList() {
-    givenOneSuperHero();
+    givenOneSuperHero(false);
 
     startActivity();
 
@@ -90,7 +93,7 @@ import static org.mockito.Mockito.when;
   }
 
   @Test public void checkOneHeroIsOnListWithName() {
-    List<SuperHero> superHeroes = givenOneSuperHero();
+    List<SuperHero> superHeroes = givenOneSuperHero(false);
 
     startActivity();
 
@@ -101,6 +104,24 @@ import static org.mockito.Mockito.when;
       @Override
       public void check(SuperHero item, View view, NoMatchingViewException e) {
         matches(hasDescendant(withText(item.getName()))).check(view, e);
+      }
+    });
+  }
+
+  @Test public void checkOneHeroIsOnListWithAvengerBadge() {
+    List<SuperHero> superHeroes = givenOneSuperHero(true);
+
+    startActivity();
+
+    RecyclerViewInteraction.<SuperHero>onRecyclerView(withId(R.id.recycler_view))
+    .withItems(superHeroes)
+    .check(new RecyclerViewInteraction.ItemViewAssertion<SuperHero>() {
+      @Override
+      public void check(SuperHero item, View view, NoMatchingViewException e) {
+        matches(hasDescendant(
+                allOf(withId(R.id.iv_avengers_badge)
+                        , withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
+        ).check(view, e);
       }
     });
   }
@@ -118,15 +139,15 @@ import static org.mockito.Mockito.when;
     when(repository.getAll()).thenReturn(Collections.<SuperHero>emptyList());
   }
 
-  private List<SuperHero> givenOneSuperHero() {
-    return generateSuperHeros(SINGLE_NUMBER_OF_SUPER_HEROES);
+  private List<SuperHero> givenOneSuperHero(boolean isAvenger) {
+    return generateSuperHeros(SINGLE_NUMBER_OF_SUPER_HEROES, isAvenger);
   }
 
   private void givenAnyNumberOfSuperHeros() {
-    generateSuperHeros(ANY_NUMBER_OF_SUPER_HEROES);
+    generateSuperHeros(ANY_NUMBER_OF_SUPER_HEROES, false);
   }
 
-  private List<SuperHero> generateSuperHeros(int numberOfSuperHeroes) {
+  private List<SuperHero> generateSuperHeros(int numberOfSuperHeroes, boolean isAvenger) {
     List<SuperHero> superHeroes = new ArrayList<>();
 
     for (int i = 0; i < numberOfSuperHeroes; i++) {
@@ -134,7 +155,7 @@ import static org.mockito.Mockito.when;
       String superHeroPhoto = "https://i.annihil.us/u/prod/marvel/i/mg/c/60/55b6a28ef24fa.jpg";
       String superHeroDescription = "Description Super Hero - " + i;
       SuperHero superHero =
-              new SuperHero(superHeroName, superHeroPhoto, false, superHeroDescription);
+              new SuperHero(superHeroName, superHeroPhoto, isAvenger, superHeroDescription);
       superHeroes.add(superHero);
       when(repository.getByName(superHeroName)).thenReturn(superHero);
     }
